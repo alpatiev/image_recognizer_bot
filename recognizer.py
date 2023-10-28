@@ -33,10 +33,13 @@ def drawLine(imageData, fromX, fromY, toX, toY):
 def drawLabel(imageData, vertices, label):
     centerX = int((vertices[0][0] + vertices[2][0]) / 2)
     centerY = int((vertices[0][1] + vertices[2][1]) / 2)
-    labelWidth, labelHeight = cv2.getTextSize(label, cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE, config.FONT_THICKNESS)[0]
+    boxWidth = int(vertices[2][0] - vertices[0][0])
+    labelWidthToBoxWidthRatio = boxWidth / len(label)
+    correction = labelWidthToBoxWidthRatio / 21
+    labelWidth, labelHeight = cv2.getTextSize(label, cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_THICKNESS)[0]
     labelCenterX = centerX - int(labelWidth / 2)
-    labelCenterY = centerY
-    cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE, config.FONT_COLOR, config.FONT_THICKNESS)
+    labelCenterY = centerY + int(labelHeight / 2)
+    cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_COLOR, config.FONT_THICKNESS)
 
 def processTextBoxing(image_bytes, text_regions):
     image_array = np.frombuffer(image_bytes, dtype=np.uint8)
