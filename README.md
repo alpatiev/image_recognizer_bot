@@ -33,3 +33,14 @@ python main.py
 # Credits
 This project based on [EasyOCR](https://github.com/JaidedAI/EasyOCR) model.
 
+# Press ⭐️ for respect...
+The next step is to organize the project correctly and add functionality:
+- add simple deployment of the bot on your PC (in one command)
+- correction of errors in the extracted text.
+- object recognition.
+- additional text description of objects upon request using a generative model, for example llama.
+
+## If you want to see this functionality, give it a star! This would be the best motivation to develop the project.
+
+
+
