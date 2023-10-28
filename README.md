@@ -23,7 +23,7 @@ easyocr -l en ru -f .
 # Usage
 Go to project directory, open config.py and paste bot token from @BotFather:
 ```
-TOKEN = "<your_token>"
+TOKEN = "your_token"
 ```
 Then just just run:
 ```
