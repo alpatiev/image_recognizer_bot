@@ -15,9 +15,11 @@ class TextRegion:
         self.label = label
         self.confidence = confidence
 
-# Recognizer object
+# Recognizer object and temp variables
 
 reader = easyocr.Reader(config.DEFAULT_LANGUAGES)
+font_color = config.FONT_COLOR_DEFAULT
+textbox_color = config.TEXTBOX_LINE_COLOR_DEFAULT
 
 # Setup new model
 
@@ -25,10 +27,17 @@ def prepare_reader_model(languages):
     global reader
     reader = easyocr.Reader(languages)  
 
+# Setup textboxes
+
+def setup_recognizer_color(color):
+    global font_color, textbox_color
+    font_color = color
+    textbox_color = color
+
 # Recognizer logic + boxing + labels
 
 def drawLine(imageData, fromX, fromY, toX, toY):
-    cv2.line(imageData, (fromX, fromY), (toX, toY), config.TEXTBOX_LINE_COLOR, config.TEXTBOX_LINE_WIDTH)
+    cv2.line(imageData, (fromX, fromY), (toX, toY), textbox_color, config.TEXTBOX_LINE_WIDTH)
 
 def drawLabel(imageData, vertices, label):
     centerX = int((vertices[0][0] + vertices[2][0]) / 2)
@@ -39,7 +48,7 @@ def drawLabel(imageData, vertices, label):
     labelWidth, labelHeight = cv2.getTextSize(label, cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_THICKNESS)[0]
     labelCenterX = centerX - int(labelWidth / 2)
     labelCenterY = centerY + int(labelHeight / 2)
-    cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_COLOR, config.FONT_THICKNESS)
+    cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, font_color, config.FONT_THICKNESS)
 
 def processTextBoxing(image_bytes, text_regions):
     image_array = np.frombuffer(image_bytes, dtype=np.uint8)
