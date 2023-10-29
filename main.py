@@ -85,6 +85,7 @@ async def any_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     photo_objects = update.message.photo
     photo_file = await context.bot.get_file(photo_objects[-1])
+    await context.bot.send_chat_action(chat_id=update.message.chat_id, action="typing")
     if photo_file.file_path.endswith('.jpg') or photo_file.file_path.endswith('.jpeg'): 
             async with aiohttp.ClientSession() as session:
                 async with session.get(photo_file.file_path) as response:
