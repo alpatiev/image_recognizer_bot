@@ -15,6 +15,11 @@ cd image_recognizer_bot
 ```
 pip install -r requirements.txt
 ```
+If something went wrong, you can try installing opencv and easyocr manually.
+```
+pip install easyocr
+pip install opencv-python
+```
 4. Load the models:
 ```
 easyocr -l en ru -f .
@@ -33,7 +38,7 @@ python main.py
 # Credits
 This project based on [EasyOCR](https://github.com/JaidedAI/EasyOCR) model.
 
-# Press ⭐️ for respect...
+# ⭐️ 
 The next step is to organize the project correctly and add functionality:
 - add simple deployment of the bot on your PC (in one command)
 - correction of errors in the extracted text.

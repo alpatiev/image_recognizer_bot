@@ -1,5 +1,6 @@
 import os
 import sys
+import queue
 import random
 import config
 import logging
@@ -16,6 +17,10 @@ logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
+# Image processing variables
+
+image_queue = queue.Queue()
+
 # Command handlers
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -23,17 +28,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user = update.effective_user
     await update.message.reply_text("Welcome! Send me image or type /help to list all comands.")
 
-async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("The server is stopped!")
-    if os.path.exists('buff.jpg'):
-        os.remove('buff.jpg')
-        print("* SERVER STOPPED: Buffer image deleted successfully.")
+async def language_check_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if recognizer.language_selected == ["ru"]:
+        await update.message.reply_text("Current recognition language is Russian.")
+    elif recognizer.language_selected == ["en"]:
+        await update.message.reply_text("Current recognition language is English.")
     else:
-        print("* SERVER STOPPED: Buffer image not found.")
-    sys.exit(0)
+        await update.message.reply_text("Current recognition languages is Russian + English.")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Bot is waiting for image. Image must be in .jpg / .jpeg format.\n\nTo change recognition language:\n/ru - Russian\n/en - English\n/ru_en - Russian + English\n\nControl bot:\n/start - Start bot\n/stop - Shut down server\n\nSettings:\n/color - Change text color\n\nOther:\n/help - List of commands")
+    await update.message.reply_text("Bot is waiting for image. Image must be in .jpg / .jpeg format.\n\nTo change recognition language:\n/ru - Russian\n/en - English\n/ru_en - Russian + English\n\nControl bot:\n/start - Start bot\n\nSettings:\n/color - Change text color\n\nOther:\n/language - Show language\n/help - List of commands")
 
 async def ru_language_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print("* LOADED IN MEMORY - [RU]")
@@ -57,7 +61,7 @@ async def color_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 [InlineKeyboardButton("BLUE", callback_data="BLUE")],
                 [InlineKeyboardButton("PURPLE", callback_data="PURPLE")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Choose color for textboxes:", reply_markup=reply_markup)
+    await update.message.reply_text("Choose color for textboxes: ", reply_markup=reply_markup)
 
 async def color_command_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -85,7 +89,10 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             async with aiohttp.ClientSession() as session:
                 async with session.get(photo_file.file_path) as response:
                     image_bytes = await response.read()
-                    result_text = recognize_text_from_image(image_bytes, len(image_bytes))
+                    result_text = await recognize_text_from_image(update,
+                                                                  context,
+                                                                  image_bytes, 
+                                                                  len(image_bytes))
                     if result_text != "":
                         await context.bot.send_photo(chat_id=update.message.chat_id, photo=open("buff.jpg", "rb"), caption=result_text)
                     else:
@@ -95,19 +102,15 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 # Logic
 
-def recognize_text_from_image(image_data, size):
+async def recognize_text_from_image(update, context, image_data, size):
     print(f"* START PROCESSING IMG {size} B")
-    ocr_result = recognizer.proccess_image(image_data)
-    if ocr_result[0] != "":
-        ocr_result[1].save('buff.jpg')
+    loop = asyncio.get_running_loop()
+    ocr_result = await loop.run_in_executor(None, recognizer.proccess_image, image_data)
+    if ocr_result[0]!= "":
+        await loop.run_in_executor(None, ocr_result[1].save, 'buff.jpg')
         print(f"* RESULT: {ocr_result[1]} {ocr_result[0]}")
     else:
         print(f"* RESULT: TEXT NOT RECOGNIZED")
-        if os.path.exists('buff.jpg'):
-            os.remove('buff.jpg')
-            print("* BUFFER: REMOVED")
-        else:
-            print("* BUFFER: FAILED TO REMOVE")
     return ocr_result[0]
 
 # Main
@@ -120,10 +123,10 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("color", color_command))
+    application.add_handler(CommandHandler("language", language_check_command))
     application.add_handler(CommandHandler("ru", ru_language_command))
     application.add_handler(CommandHandler("en", en_language_command))
     application.add_handler(CommandHandler("ru_en", ru_en_language_command))
-    application.add_handler(CommandHandler("stop", stop_command))
 
     # command callbacks
     application.add_handler(CallbackQueryHandler(color_command_button))

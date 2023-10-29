@@ -2,7 +2,7 @@
 TOKEN = "your_token"
 
 # Initial language models. Loaded in memory when server starts.
-DEFAULT_LANGUAGES = ["en"]
+DEFAULT_LANGUAGES = ["ru", "en"]
 
 # Text box settings.
 TEXTBOX_LINE_WIDTH = 1

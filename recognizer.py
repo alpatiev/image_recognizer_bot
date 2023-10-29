@@ -20,12 +20,14 @@ class TextRegion:
 reader = easyocr.Reader(config.DEFAULT_LANGUAGES)
 font_color = config.FONT_COLOR_DEFAULT
 textbox_color = config.TEXTBOX_LINE_COLOR_DEFAULT
+language_selected = config.DEFAULT_LANGUAGES
 
 # Setup new model
 
 def prepare_reader_model(languages):
-    global reader
-    reader = easyocr.Reader(languages)  
+    global reader, language_selected
+    reader = easyocr.Reader(languages) 
+    language_selected = languages
 
 # Setup textboxes
 
@@ -43,12 +45,13 @@ def drawLabel(imageData, vertices, label):
     centerX = int((vertices[0][0] + vertices[2][0]) / 2)
     centerY = int((vertices[0][1] + vertices[2][1]) / 2)
     boxWidth = int(vertices[2][0] - vertices[0][0])
-    labelWidthToBoxWidthRatio = boxWidth / len(label)
-    correction = labelWidthToBoxWidthRatio / 21
-    labelWidth, labelHeight = cv2.getTextSize(label, cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_THICKNESS)[0]
-    labelCenterX = centerX - int(labelWidth / 2)
-    labelCenterY = centerY + int(labelHeight / 2)
-    cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, font_color, config.FONT_THICKNESS)
+    if label != "":
+        labelWidthToBoxWidthRatio = boxWidth / len(label)
+        correction = labelWidthToBoxWidthRatio / 21
+        labelWidth, labelHeight = cv2.getTextSize(label, cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, config.FONT_THICKNESS)[0]
+        labelCenterX = centerX - int(labelWidth / 2)
+        labelCenterY = centerY + int(labelHeight / 2)
+        cv2.putText(imageData, label, (labelCenterX, labelCenterY), cv2.FONT_HERSHEY_COMPLEX, config.FONT_SIZE * correction, font_color, config.FONT_THICKNESS)
 
 def processTextBoxing(image_bytes, text_regions):
     image_array = np.frombuffer(image_bytes, dtype=np.uint8)
